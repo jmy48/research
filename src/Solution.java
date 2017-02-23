@@ -9,6 +9,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Arrays;
 
 import org.jgrapht.*;
 import org.jgrapht.graph.*;
@@ -18,6 +20,7 @@ public class Solution {
     public int start;
     public int finish;
     public ArrayList<Integer> blackDots;
+    public ArrayList<Cell> cells;
 
 
     public Solution(String args[]) throws IOException {
@@ -59,6 +62,20 @@ public class Solution {
                 }
                 blackDots = a;
             }
+            else if(tokens[0].equals("c")){
+                ArrayList<Cell> c = new ArrayList<>();
+                for(int i = 1; i < tokens.length; i++){
+                    String s = tokens[i];
+
+                    List<String> t = Arrays.asList(s.split(","));
+
+                    c.add(new Cell(t.get(0), Integer.parseInt(t.get(1)),
+                            Integer.parseInt(t.get(2)),
+                            Integer.parseInt(t.get(3)),
+                            Integer.parseInt(t.get(4))));
+                }
+                cells = c;
+            }
         }
 
         reader.close();
@@ -68,12 +85,18 @@ public class Solution {
         System.out.println(board.vertexSet());
         System.out.println(board.edgeSet());
 
-        if(blackDots == null) {
-            new Dfs("regular", start, finish, new ArrayList<>(board.vertexSet().size()));
+        ArrayList<String> ar = new ArrayList<>();
+
+        ar.add("regular");
+
+        if(blackDots != null){
+            ar.add("blackdots");
         }
-        else{
-            new Dfs("blackdots", start, finish, new ArrayList<>(board.vertexSet().size()));
+        if(cells != null){
+            ar.add("cells");
         }
+
+        new Dfs(ar, start, finish, new ArrayList<>(board.vertexSet().size()));
     }
 
     public class Dfs{
@@ -81,18 +104,14 @@ public class Solution {
         ArrayList<ArrayList<Integer>> allPaths;
         int end;
 
-        public Dfs(String indicator, int source, int e, ArrayList<Integer> v){
+        public Dfs(ArrayList<String> indicator, int source, int e, ArrayList<Integer> v){
                 end = e;
                 allPaths = new ArrayList<>();
 
-            if(indicator.equals("regular")) {
-                dfsRegular(source, new ArrayList<>());
+            dfsRegular(source, new ArrayList<>());
 
-                System.out.println(allPaths);
-            }
-            else if(indicator.equals("blackdots")){
-                dfsRegular(source, new ArrayList<>());
 
+            if(indicator.contains("blackdots")){
                 Iterator<ArrayList<Integer>> iter = allPaths.iterator();
 
                 while (iter.hasNext()) {
@@ -102,8 +121,42 @@ public class Solution {
                         iter.remove();
                     }
                 }
-                System.out.println(allPaths);
             }
+
+            if(indicator.contains("cells")){
+                ArrayList<Edge> needs_these_Edges = new ArrayList<>();
+
+                for(Cell i: cells){
+                    for(Cell j: cells){
+                        if(!i.color.equals(j.color)){
+                            for(Edge ed: i.edges){
+                                if(j.edges.contains(ed)){
+                                    needs_these_Edges.add(ed);
+                                }
+                            }
+                        }
+                    }
+                }
+
+
+                Iterator<ArrayList<Integer>> iter = allPaths.iterator();
+
+                while (iter.hasNext()) {
+                    ArrayList<Integer> path = iter.next();
+                    ArrayList<Edge> path_to_edges = new ArrayList<>();
+                    for(int i = 1; i < path.size(); i++){
+                        path_to_edges.add(new Edge(
+                                path.get(i-1), path.get(i)
+                        ));
+                    }
+
+                    if (!path_to_edges.containsAll(needs_these_Edges)) {
+                        iter.remove();
+                    }
+                }
+            }
+
+            System.out.println(allPaths);
         }
 
         public void dfsRegular(int source, ArrayList<Integer> visited){
@@ -120,7 +173,6 @@ public class Solution {
                 }
             }
         }
-
     }
 
     public static void main(String args[]) throws IOException{
