@@ -18,17 +18,29 @@ public class Edge implements Comparator<Edge> {
 
     @Override
     public int compare(Edge e1, Edge e2){
-        if(e1.source == e2.source && e1.sink == e2.sink){
-            return 0;
+        if(e1.source > e2.source){
+            return 1;
+        }
+        else if(e1.source < e2. source){
+            return -1;
+        }
+        else if(e1.sink > e2.sink){
+            return 1;
+        }
+        else if(e1.sink < e2.sink){
+            return -1;
         }
         else{
-            return -1;
+            return 0;
         }
     }
 
     @Override
     public boolean equals(Object e){
         Edge ed = (Edge) e;
-        return (this.source == ed.source && this.sink == ed.sink);
+        return (
+                (this.source == ed.source && this.sink == ed.sink) ||
+                        (this.source == ed.sink && this.sink == ed.source)
+        );
     }
 }
